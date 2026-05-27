@@ -48,18 +48,33 @@ export default function Home() {
 
     console.log("🔌 Connecting Socket...");
 
-    socketRef.current = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-    });
+    // ======================
+    // PREVENT MULTIPLE SOCKET
+    // ======================
+
+    if (!socketRef.current) {
+
+      socketRef.current = io(SOCKET_URL, {
+
+        transports: ["websocket"],
+
+        reconnection: true,
+
+        reconnectionAttempts: Infinity,
+
+        reconnectionDelay: 1000,
+
+      });
+
+    }
+
+    const socket = socketRef.current;
 
     // ======================
     // CONNECT
     // ======================
 
-    socketRef.current.on("connect", () => {
+    socket.on("connect", () => {
 
       console.log("✅ SOCKET CONNECTED");
 
@@ -71,7 +86,7 @@ export default function Home() {
     // DISCONNECT
     // ======================
 
-    socketRef.current.on("disconnect", () => {
+    socket.on("disconnect", () => {
 
       console.log("❌ SOCKET DISCONNECTED");
 
@@ -80,10 +95,10 @@ export default function Home() {
     });
 
     // ======================
-    // STATUS UPDATE
+    // STATUS
     // ======================
 
-    socketRef.current.on("status", (data: any) => {
+    socket.on("status", (data: any) => {
 
       console.log("📡 STATUS:", data);
 
@@ -95,7 +110,7 @@ export default function Home() {
     // RECEIVE MESSAGE
     // ======================
 
-    socketRef.current.on("new_message", (data: any) => {
+    socket.on("new_message", (data: any) => {
 
       console.log("📩 NEW MESSAGE:", data);
 
@@ -107,9 +122,10 @@ export default function Home() {
 
         const exists = prev.some(
           (m) =>
-            m.id === data.id &&
+            m.jid === data.jid &&
             m.text === data.text &&
-            m.time === data.time
+            m.time === data.time &&
+            m.direction === data.direction
         );
 
         if (exists) return prev;
@@ -120,7 +136,8 @@ export default function Home() {
             id:
               data.id ||
               Date.now() + Math.random(),
-            direction: data.direction || "in",
+            direction:
+              data.direction || "in",
           },
           ...prev,
         ];
@@ -133,9 +150,12 @@ export default function Home() {
     // SOCKET ERROR
     // ======================
 
-    socketRef.current.on("connect_error", (err) => {
+    socket.on("connect_error", (err) => {
 
-      console.log("❌ SOCKET ERROR:", err.message);
+      console.log(
+        "❌ SOCKET ERROR:",
+        err.message
+      );
 
     });
 
@@ -147,14 +167,18 @@ export default function Home() {
 
       console.log("🧹 SOCKET CLEANUP");
 
-      socketRef.current?.disconnect();
+      socket.off();
+
+      socket.disconnect();
+
+      socketRef.current = null;
 
     };
 
   }, []);
 
   // ======================
-  // GROUP CHAT
+  // GROUP CHATS
   // ======================
 
   const groupedChats = useMemo(() => {
@@ -162,7 +186,9 @@ export default function Home() {
     return messages.reduce((acc: any, msg: any) => {
 
       if (!acc[msg.jid]) {
+
         acc[msg.jid] = [];
+
       }
 
       acc[msg.jid].push(msg);
@@ -174,7 +200,7 @@ export default function Home() {
   }, [messages]);
 
   // ======================
-  // ACTIVE CHAT
+  // ACTIVE CHAT MESSAGES
   // ======================
 
   const activeMessages =
@@ -231,28 +257,20 @@ export default function Home() {
 
       text: input,
 
-      senderName: "You",
-
-      direction: "out",
-
-      time: formatTime(),
-
     };
 
     // ======================
-    // OPTIMISTIC UI
-    // ======================
-
-    setMessages((prev) => [msg, ...prev]);
-
-    // ======================
-    // SEND SOCKET
+    // SEND TO SOCKET
     // ======================
 
     socketRef.current?.emit(
       "send_message",
       msg
     );
+
+    // ======================
+    // CLEAR INPUT
+    // ======================
 
     setInput("");
 
@@ -288,13 +306,16 @@ export default function Home() {
 
         {Object.keys(groupedChats).map((jid) => {
 
-          const lastMsg = groupedChats[jid][0];
+          const lastMsg =
+            groupedChats[jid][0];
 
           return (
 
             <div
               key={jid}
-              onClick={() => setActiveChat(jid)}
+              onClick={() =>
+                setActiveChat(jid)
+              }
               className={`p-3 border-b cursor-pointer hover:bg-gray-100 transition ${
                 activeChat === jid
                   ? "bg-gray-100"
@@ -397,17 +418,95 @@ export default function Home() {
 
                     )}
 
-                  {/* TEXT */}
+                 {/* ======================
+    IMAGE
+====================== */}
 
-                  {msg.text && (
+{msg.mediaType === "image" &&
+  msg.mediaUrl && (
 
-                    <p className="whitespace-pre-wrap">
+    <img
+      src={msg.mediaUrl}
+      alt=""
+      className="rounded-xl mb-2 max-w-full"
+    />
 
-                      {msg.text}
+)}
 
-                    </p>
+{/* ======================
+    VIDEO
+====================== */}
 
-                  )}
+{msg.mediaType === "video" &&
+  msg.mediaUrl && (
+
+    <video
+      controls
+      className="rounded-xl mb-2 max-w-full"
+    >
+      <source src={msg.mediaUrl} />
+    </video>
+
+)}
+
+{/* ======================
+    STICKER
+====================== */}
+
+{msg.mediaType === "sticker" &&
+  msg.mediaUrl && (
+
+    <img
+      src={msg.mediaUrl}
+      alt=""
+      className="w-32 h-32 object-contain"
+    />
+
+)}
+
+{/* ======================
+    AUDIO
+====================== */}
+
+{msg.mediaType === "audio" &&
+  msg.mediaUrl && (
+
+    <audio controls className="mt-2">
+      <source src={msg.mediaUrl} />
+    </audio>
+
+)}
+
+{/* ======================
+    DOCUMENT
+====================== */}
+
+{msg.mediaType === "document" &&
+  msg.mediaUrl && (
+
+    <a
+      href={msg.mediaUrl}
+      target="_blank"
+      className="text-blue-500 underline"
+    >
+      {msg.text}
+    </a>
+
+)}
+
+{/* ======================
+    TEXT
+====================== */}
+
+{msg.text && (
+
+  <p className="whitespace-pre-wrap">
+
+    {msg.text}
+
+  </p>
+
+)}
 
                   {/* TIME */}
 
