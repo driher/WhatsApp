@@ -7,8 +7,8 @@ import { io, Socket } from "socket.io-client";
 // SOCKET URL (SAFE)
 // ======================
 const SOCKET_URL =
-  NEXT_PUBLIC_SOCKET_URL=https://birthday-cruz-solving-howto.trycloudflare.com
-
+  process.env.NEXT_PUBLIC_SOCKET_URL ||
+  "https://birthday-cruz-solving-howto.trycloudflare.com";
 // ======================
 // FORMAT TIME
 // ======================
