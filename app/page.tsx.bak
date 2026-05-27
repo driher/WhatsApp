@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:4000", {
-  transports: ["websocket"],
-});
+
+const socket = io("http://localhost:4000");
+
 const formatTime = () =>
   new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
