@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 // ======================
-// CONFIG
+// SOCKET URL (SAFE)
 // ======================
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL!;
+const SOCKET_URL =
+  NEXT_PUBLIC_SOCKET_URL=https://birthday-cruz-solving-howto.trycloudflare.com
 
 // ======================
 // FORMAT TIME
@@ -29,7 +30,7 @@ export default function Home() {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // ======================
-  // SOCKET INIT (SAFE SINGLETON)
+  // SOCKET INIT
   // ======================
   useEffect(() => {
     if (socketRef.current) return;
@@ -37,25 +38,18 @@ export default function Home() {
     const socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: Infinity,
     });
 
     socketRef.current = socket;
 
-    socket.on("connect", () => {
-      setStatus("CONNECTED");
-    });
-
-    socket.on("disconnect", () => {
-      setStatus("DISCONNECTED");
-    });
+    socket.on("connect", () => setStatus("CONNECTED"));
+    socket.on("disconnect", () => setStatus("DISCONNECTED"));
 
     socket.on("status", (data) => {
       setStatus(data);
     });
 
-    socket.on("new_message", (data) => {
+    socket.on("message", (data) => {
       setMessages((prev) => {
         const exists = prev.some((m) => m.id === data.id);
         if (exists) return prev;
@@ -70,10 +64,6 @@ export default function Home() {
       });
     });
 
-    socket.on("connect_error", (err) => {
-      console.log("Socket error:", err.message);
-    });
-
     return () => {
       socket.disconnect();
       socketRef.current = null;
@@ -81,7 +71,7 @@ export default function Home() {
   }, []);
 
   // ======================
-  // GROUP CHATS
+  // GROUP CHAT BY JID
   // ======================
   const groupedChats = useMemo(() => {
     return messages.reduce((acc: any, msg: any) => {
@@ -150,7 +140,7 @@ export default function Home() {
               }`}
             >
               <p className="font-bold text-sm">
-                {lastMsg.groupName || lastMsg.senderName}
+                {lastMsg.senderName || jid}
               </p>
               <p className="text-xs text-gray-500 truncate">
                 {lastMsg.text || "[MEDIA]"}
@@ -166,10 +156,7 @@ export default function Home() {
         {/* HEADER */}
         <div className="bg-white p-3 shadow">
           <p className="font-bold">
-            {activeChat
-              ? groupedChats[activeChat]?.[0]?.groupName ||
-                groupedChats[activeChat]?.[0]?.senderName
-              : "Pilih Chat"}
+            {activeChat || "Pilih Chat"}
           </p>
         </div>
 
@@ -184,17 +171,20 @@ export default function Home() {
             >
               <div
                 className={`max-w-[70%] p-2 rounded-lg shadow text-sm ${
-                  msg.direction === "in" ? "bg-white" : "bg-green-200"
+                  msg.direction === "in"
+                    ? "bg-white"
+                    : "bg-green-200"
                 }`}
               >
-                {msg.senderName && (
-                  <p className="text-[11px] text-gray-500">
-                    {msg.senderName}
-                  </p>
-                )}
+                <p className="text-[11px] text-gray-500">
+                  {msg.senderName || "User"}
+                </p>
 
-                {msg.mediaUrl && msg.mediaType === "image" && (
-                  <img src={msg.mediaUrl} className="rounded mb-2" />
+                {msg.type === "image" && msg.mediaUrl && (
+                  <img
+                    src={msg.mediaUrl}
+                    className="rounded mb-2"
+                  />
                 )}
 
                 {msg.text && <p>{msg.text}</p>}
