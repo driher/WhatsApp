@@ -156,7 +156,12 @@ export default function Home() {
         {/* HEADER */}
         <div className="bg-white p-3 shadow">
           <p className="font-bold">
-            {activeChat || "Pilih Chat"}
+            <p className="font-bold">
+  {activeMessages?.[0]?.groupName ||
+   activeMessages?.[0]?.senderName ||
+   activeChat ||
+   "Pilih Chat"}
+</p>
           </p>
         </div>
 
