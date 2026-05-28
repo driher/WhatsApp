@@ -260,24 +260,6 @@ export default function Home() {
 
   }, [groupedChats]);
 
-// ======================================================
-// DEFAULT SCROLL TO BOTTOM
-// ======================================================
-
-useEffect(() => {
-
-  if (!activeChat) return;
-
-  setTimeout(() => {
-
-    bottomRef.current?.scrollIntoView({
-      behavior: "auto",
-    });
-
-  }, 100);
-
-}, [activeChat]);
-
   // ======================================================
   // SEND MESSAGE
   // ======================================================
