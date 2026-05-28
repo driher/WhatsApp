@@ -3,15 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-// ======================
-// SOCKET URL (SAFE)
-// ======================
+// ======================================================
+// SOCKET URL
+// ======================================================
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL ||
   "https://birthday-cruz-solving-howto.trycloudflare.com";
-// ======================
+
+// ======================================================
 // FORMAT TIME
-// ======================
+// ======================================================
 const formatTime = () =>
   new Date().toLocaleTimeString("id-ID", {
     hour: "2-digit",
@@ -25,13 +26,14 @@ export default function Home() {
   const [status, setStatus] = useState("DISCONNECTED");
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [showSidebar, setShowSidebar] = useState(true);
 
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // ======================
+  // ======================================================
   // SOCKET INIT
-  // ======================
+  // ======================================================
   useEffect(() => {
     if (socketRef.current) return;
 
@@ -42,8 +44,13 @@ export default function Home() {
 
     socketRef.current = socket;
 
-    socket.on("connect", () => setStatus("CONNECTED"));
-    socket.on("disconnect", () => setStatus("DISCONNECTED"));
+    socket.on("connect", () => {
+      setStatus("CONNECTED");
+    });
+
+    socket.on("disconnect", () => {
+      setStatus("DISCONNECTED");
+    });
 
     socket.on("status", (data) => {
       setStatus(data);
@@ -55,11 +62,11 @@ export default function Home() {
         if (exists) return prev;
 
         return [
+          ...prev,
           {
             ...data,
             id: data.id || crypto.randomUUID(),
           },
-          ...prev,
         ];
       });
     });
@@ -70,34 +77,54 @@ export default function Home() {
     };
   }, []);
 
-  // ======================
-  // GROUP CHAT BY JID
-  // ======================
+  // ======================================================
+  // GROUP CHATS
+  // ======================================================
   const groupedChats = useMemo(() => {
     return messages.reduce((acc: any, msg: any) => {
-      if (!acc[msg.jid]) acc[msg.jid] = [];
+      if (!acc[msg.jid]) {
+        acc[msg.jid] = [];
+      }
+
       acc[msg.jid].push(msg);
+
       return acc;
     }, {});
   }, [messages]);
 
-  const activeMessages = activeChat ? groupedChats[activeChat] || [] : [];
+  // ======================================================
+  // ACTIVE CHAT
+  // ======================================================
+  const activeMessages = activeChat
+    ? groupedChats[activeChat] || []
+    : [];
 
-  // auto select first chat
+  // ======================================================
+  // AUTO SELECT FIRST CHAT
+  // ======================================================
   useEffect(() => {
     if (!activeChat && Object.keys(groupedChats).length > 0) {
       setActiveChat(Object.keys(groupedChats)[0]);
+
+      // mobile auto close sidebar
+      if (window.innerWidth < 768) {
+        setShowSidebar(false);
+      }
     }
   }, [groupedChats]);
 
-  // auto scroll
+  // ======================================================
+  // AUTO SCROLL
+  // ======================================================
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [activeMessages]);
 
-  // ======================
+  // ======================================================
   // SEND MESSAGE
-  // ======================
+  // ======================================================
   const sendMessage = () => {
     if (!input.trim() || !activeChat) return;
 
@@ -109,117 +136,309 @@ export default function Home() {
     setInput("");
   };
 
+  // ======================================================
+  // LAST MESSAGE
+  // ======================================================
+  const getLastMessage = (jid: string) => {
+    const chat = groupedChats[jid];
+
+    if (!chat) return null;
+
+    return chat[chat.length - 1];
+  };
+
   return (
-    <main className="h-screen flex bg-[#e5ddd5]">
+    <main className="h-screen overflow-hidden bg-[#111b21]">
+      <div className="flex h-full relative">
 
-      {/* SIDEBAR */}
-      <div className="w-1/3 bg-white border-r overflow-y-auto">
-        <div className="p-3 font-bold border-b flex justify-between">
-          <div>Chats ({Object.keys(groupedChats).length})</div>
+        {/* ======================================================
+            SIDEBAR
+        ====================================================== */}
+        <div
+          className={`
+            bg-white border-r border-gray-200
+            flex flex-col
+            fixed md:relative
+            z-30
+            h-full
+            w-[85%] sm:w-[380px] md:w-[350px]
+            transition-transform duration-300
+            ${
+              showSidebar
+                ? "translate-x-0"
+                : "-translate-x-full"
+            }
+            md:translate-x-0
+          `}
+        >
 
-          <div
-            className={`text-xs px-2 py-1 rounded-full ${
-              status === "CONNECTED"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {status}
+          {/* HEADER */}
+          <div className="bg-[#202c33] text-white p-4 border-b border-[#2f3b43]">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="font-bold text-lg">
+                  WhatsApp Relay
+                </h1>
+
+                <p className="text-xs text-gray-300 mt-1">
+                  {Object.keys(groupedChats).length} chats
+                </p>
+              </div>
+
+              <div
+                className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                  status === "CONNECTED"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                }`}
+              >
+                {status}
+              </div>
+            </div>
+          </div>
+
+          {/* CHAT LIST */}
+          <div className="flex-1 overflow-y-auto bg-white">
+            {Object.keys(groupedChats).length === 0 && (
+              <div className="p-5 text-sm text-gray-500">
+                Belum ada pesan masuk
+              </div>
+            )}
+
+            {Object.keys(groupedChats).map((jid) => {
+              const lastMsg = getLastMessage(jid);
+
+              return (
+                <div
+                  key={jid}
+                  onClick={() => {
+                    setActiveChat(jid);
+
+                    // auto close sidebar mobile
+                    if (window.innerWidth < 768) {
+                      setShowSidebar(false);
+                    }
+                  }}
+                  className={`
+                    p-4 border-b cursor-pointer
+                    hover:bg-gray-100
+                    transition
+                    ${
+                      activeChat === jid
+                        ? "bg-[#f0f2f5]"
+                        : "bg-white"
+                    }
+                  `}
+                >
+                  <div className="flex justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">
+                        {lastMsg?.senderName || jid}
+                      </p>
+
+                      <p className="text-xs text-gray-500 truncate mt-1">
+                        {lastMsg?.text || "[MEDIA]"}
+                      </p>
+                    </div>
+
+                    <div className="text-[10px] text-gray-400 whitespace-nowrap">
+                      {lastMsg?.time || formatTime()}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {Object.keys(groupedChats).map((jid) => {
-          const lastMsg = groupedChats[jid][0];
+        {/* ======================================================
+            MOBILE OVERLAY
+        ====================================================== */}
+        {showSidebar && (
+          <div
+            onClick={() => setShowSidebar(false)}
+            className="
+              fixed inset-0
+              bg-black/40
+              z-20
+              md:hidden
+            "
+          />
+        )}
 
-          return (
-            <div
-              key={jid}
-              onClick={() => setActiveChat(jid)}
-              className={`p-3 border-b cursor-pointer hover:bg-gray-100 ${
-                activeChat === jid ? "bg-gray-100" : ""
-              }`}
+        {/* ======================================================
+            CHAT AREA
+        ====================================================== */}
+        <div className="flex-1 flex flex-col bg-[#efeae2] relative">
+
+          {/* HEADER */}
+          <div className="bg-[#202c33] text-white p-3 shadow-md flex items-center gap-3">
+
+            {/* MOBILE MENU */}
+            <button
+              onClick={() => setShowSidebar(true)}
+              className="
+                md:hidden
+                text-2xl
+                leading-none
+              "
             >
-              <p className="font-bold text-sm">
-                {lastMsg.senderName || jid}
+              ☰
+            </button>
+
+            {/* AVATAR */}
+            <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
+              👤
+            </div>
+
+            {/* INFO */}
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold truncate">
+                {activeMessages?.[0]?.groupName ||
+                  activeMessages?.[0]?.senderName ||
+                  activeChat ||
+                  "Pilih Chat"}
               </p>
-              <p className="text-xs text-gray-500 truncate">
-                {lastMsg.text || "[MEDIA]"}
+
+              <p className="text-xs text-gray-300">
+                Online
               </p>
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* CHAT */}
-      <div className="flex-1 flex flex-col">
+          {/* ======================================================
+              CHAT BODY
+          ====================================================== */}
+          <div
+            className="
+              flex-1
+              overflow-y-auto
+              p-3 md:p-5
+              space-y-3
+              bg-[#efeae2]
+            "
+            
+          >
 
-        {/* HEADER */}
-        <div className="bg-white p-3 shadow">
-            <p className="font-bold">
-  {activeMessages?.[0]?.groupName ||
-   activeMessages?.[0]?.senderName ||
-   activeChat ||
-   "Pilih Chat"}
-</p>
+            {/* EMPTY STATE */}
+            {activeMessages.length === 0 && (
+              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                Pilih chat untuk mulai melihat pesan
+              </div>
+            )}
 
-        </div>
-
-        {/* BODY */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {activeMessages.map((msg: any) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                msg.direction === "in" ? "justify-start" : "justify-end"
-              }`}
-            >
+            {/* MESSAGES */}
+            {activeMessages.map((msg: any) => (
               <div
-                className={`max-w-[70%] p-2 rounded-lg shadow text-sm ${
+                key={msg.id}
+                className={`flex ${
                   msg.direction === "in"
-                    ? "bg-white"
-                    : "bg-green-200"
+                    ? "justify-start"
+                    : "justify-end"
                 }`}
               >
-                <p className="text-[11px] text-gray-500">
-                  {msg.senderName || "User"}
-                </p>
+                <div
+                  className={`
+                    max-w-[90%] md:max-w-[70%]
+                    px-3 py-2
+                    rounded-2xl
+                    shadow-sm
+                    text-sm
+                    break-words
+                    ${
+                      msg.direction === "in"
+                        ? "bg-white rounded-tl-md"
+                        : "bg-[#d9fdd3] rounded-tr-md"
+                    }
+                  `}
+                >
 
-                {msg.type === "image" && msg.mediaUrl && (
-                  <img
-                    src={msg.mediaUrl}
-                    className="rounded mb-2"
-                  />
-                )}
+                  {/* SENDER */}
+                  <p className="text-[11px] text-gray-500 mb-1">
+                    {msg.senderName || "User"}
+                  </p>
 
-                {msg.text && <p>{msg.text}</p>}
+                  {/* IMAGE */}
+                  {msg.type === "image" &&
+                    msg.mediaUrl && (
+                      <img
+                        src={msg.mediaUrl}
+                        alt="media"
+                        className="
+                          rounded-lg
+                          mb-2
+                          max-w-full
+                          h-auto
+                        "
+                      />
+                    )}
 
-                <p className="text-[10px] text-gray-400 text-right">
-                  {msg.time || formatTime()}
-                </p>
+                  {/* TEXT */}
+                  {msg.text && (
+                    <p className="whitespace-pre-wrap text-[14px]">
+                      {msg.text}
+                    </p>
+                  )}
+
+                  {/* TIME */}
+                  <div className="flex justify-end mt-1">
+                    <p className="text-[10px] text-gray-400">
+                      {msg.time || formatTime()}
+                    </p>
+                  </div>
+                </div>
               </div>
+            ))}
+
+            <div ref={bottomRef} />
+          </div>
+
+          {/* ======================================================
+              INPUT AREA
+          ====================================================== */}
+          <div className="bg-[#202c33] p-3">
+            <div className="flex items-center gap-2">
+
+              {/* INPUT */}
+              <input
+                type="text"
+                placeholder="Ketik pesan..."
+                value={input}
+                onChange={(e) =>
+                  setInput(e.target.value)
+                }
+                onKeyDown={(e) =>
+                  e.key === "Enter" && sendMessage()
+                }
+                className="
+                  flex-1
+                  bg-white
+                  rounded-full
+                  px-4 py-3
+                  text-sm
+                  outline-none
+                "
+              />
+
+              {/* BUTTON */}
+              <button
+                onClick={sendMessage}
+                className="
+                  bg-[#00a884]
+                  hover:bg-[#06cf9c]
+                  text-white
+                  px-5 py-3
+                  rounded-full
+                  transition
+                  font-semibold
+                  shrink-0
+                "
+              >
+                Kirim
+              </button>
             </div>
-          ))}
-
-          <div ref={bottomRef} />
+          </div>
         </div>
-
-        {/* INPUT */}
-        <div className="p-3 bg-white border-t flex gap-2">
-          <input
-            className="flex-1 border rounded-full px-4 py-2"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-
-          <button
-            onClick={sendMessage}
-            className="bg-green-500 text-white px-5 rounded-full"
-          >
-            Kirim
-          </button>
-        </div>
-
       </div>
     </main>
   );
