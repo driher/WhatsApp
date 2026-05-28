@@ -1,444 +1,157 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { useState } from "react";
 
-// ======================================================
-// SOCKET URL
-// ======================================================
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL ||
-  "https://birthday-cruz-solving-howto.trycloudflare.com";
+// ============================================
+// SIMPLE LOGIN PAGE
+// username: sejati
+// password: sejiwa
+// ============================================
 
-// ======================================================
-// FORMAT TIME
-// ======================================================
-const formatTime = () =>
-  new Date().toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
+export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-export default function Home() {
-  const [messages, setMessages] = useState<any[]>([]);
-  const [status, setStatus] = useState("DISCONNECTED");
-  const [activeChat, setActiveChat] = useState<string | null>(null);
-  const [input, setInput] = useState("");
-  const [showSidebar, setShowSidebar] = useState(true);
-
-  const socketRef = useRef<Socket | null>(null);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  // ======================================================
-  // SOCKET INIT
-  // ======================================================
-  useEffect(() => {
-    if (socketRef.current) return;
-
-    const socket = io(SOCKET_URL, {
-      transports: ["websocket"],
-      reconnection: true,
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      setStatus("CONNECTED");
-    });
-
-    socket.on("disconnect", () => {
-      setStatus("DISCONNECTED");
-    });
-
-    socket.on("status", (data) => {
-      setStatus(data);
-    });
-
-    socket.on("message", (data) => {
-      setMessages((prev) => {
-        const exists = prev.some((m) => m.id === data.id);
-        if (exists) return prev;
-
-        return [
-          ...prev,
-          {
-            ...data,
-            id: data.id || crypto.randomUUID(),
-          },
-        ];
-      });
-    });
-
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, []);
-
-  // ======================================================
-  // GROUP CHATS
-  // ======================================================
-  const groupedChats = useMemo(() => {
-    return messages.reduce((acc: any, msg: any) => {
-      if (!acc[msg.jid]) {
-        acc[msg.jid] = [];
-      }
-
-      acc[msg.jid].push(msg);
-
-      return acc;
-    }, {});
-  }, [messages]);
-
-  // ======================================================
-  // ACTIVE CHAT
-  // ======================================================
-  const activeMessages = activeChat
-    ? groupedChats[activeChat] || []
-    : [];
-
-  // ======================================================
-  // AUTO SELECT FIRST CHAT
-  // ======================================================
-  useEffect(() => {
-    if (!activeChat && Object.keys(groupedChats).length > 0) {
-      setActiveChat(Object.keys(groupedChats)[0]);
-
-      // mobile auto close sidebar
-      if (window.innerWidth < 768) {
-        setShowSidebar(false);
-      }
+  const handleLogin = () => {
+    if (
+      username === "sehati" &&
+      password === "sejiwa"
+    ) {
+      // redirect ke page.txt
+      window.location.href = "/dashboard";
+    } else {
+      setError("Username atau password salah");
     }
-  }, [groupedChats]);
-
-  // ======================================================
-  // AUTO SCROLL
-  // ======================================================
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [activeMessages]);
-
-  // ======================================================
-  // SEND MESSAGE
-  // ======================================================
-  const sendMessage = () => {
-    if (!input.trim() || !activeChat) return;
-
-    socketRef.current?.emit("send_message", {
-      jid: activeChat,
-      text: input,
-    });
-
-    setInput("");
-  };
-
-  // ======================================================
-  // LAST MESSAGE
-  // ======================================================
-  const getLastMessage = (jid: string) => {
-    const chat = groupedChats[jid];
-
-    if (!chat) return null;
-
-    return chat[chat.length - 1];
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-[#111b21]">
-      <div className="flex h-full relative">
-
-        {/* ======================================================
-            SIDEBAR
-        ====================================================== */}
-        <div
-          className={`
-            bg-white border-r border-gray-200
-            flex flex-col
-            fixed md:relative
-            z-30
-            h-full
-            w-[85%] sm:w-[380px] md:w-[350px]
-            transition-transform duration-300
-            ${
-              showSidebar
-                ? "translate-x-0"
-                : "-translate-x-full"
-            }
-            md:translate-x-0
-          `}
-        >
-
-          {/* HEADER */}
-          <div className="bg-[#202c33] text-white p-4 border-b border-[#2f3b43]">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="font-bold text-lg">
-                  WhatsApp Relay
-                </h1>
-
-                <p className="text-xs text-gray-300 mt-1">
-                  {Object.keys(groupedChats).length} chats
-                </p>
-              </div>
-
-              <div
-                className={`text-xs px-3 py-1 rounded-full font-semibold ${
-                  status === "CONNECTED"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {status}
-              </div>
-            </div>
+    <main className="min-h-screen bg-[#111b21] flex items-center justify-center p-5">
+      <div
+        className="
+          w-full
+          max-w-sm
+          bg-white
+          rounded-2xl
+          shadow-2xl
+          p-6
+        "
+      >
+        {/* LOGO */}
+        <div className="text-center mb-6">
+          <div
+            className="
+              w-20 h-20
+              rounded-full
+              bg-[#00a884]
+              mx-auto
+              flex items-center justify-center
+              text-white text-3xl
+              font-bold
+            "
+          >
+            🔒
           </div>
 
-          {/* CHAT LIST */}
-          <div className="flex-1 overflow-y-auto bg-white">
-            {Object.keys(groupedChats).length === 0 && (
-              <div className="p-5 text-sm text-gray-500">
-                Belum ada pesan masuk
-              </div>
-            )}
+          <h1 className="text-2xl font-bold mt-4">
+            Login Relay
+          </h1>
 
-            {Object.keys(groupedChats).map((jid) => {
-              const lastMsg = getLastMessage(jid);
-
-              return (
-                <div
-                  key={jid}
-                  onClick={() => {
-                    setActiveChat(jid);
-
-                    // auto close sidebar mobile
-                    if (window.innerWidth < 768) {
-                      setShowSidebar(false);
-                    }
-                  }}
-                  className={`
-                    p-4 border-b cursor-pointer
-                    hover:bg-gray-100
-                    transition
-                    ${
-                      activeChat === jid
-                        ? "bg-[#f0f2f5]"
-                        : "bg-white"
-                    }
-                  `}
-                >
-                  <div className="flex justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm truncate">
-                        {lastMsg?.senderName || jid}
-                      </p>
-
-                      <p className="text-xs text-gray-500 truncate mt-1">
-                        {lastMsg?.text || "[MEDIA]"}
-                      </p>
-                    </div>
-
-                    <div className="text-[10px] text-gray-400 whitespace-nowrap">
-                      {lastMsg?.time || formatTime()}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="text-gray-500 text-sm mt-1">
+            Masuk untuk mengakses sistem
+          </p>
         </div>
 
-        {/* ======================================================
-            MOBILE OVERLAY
-        ====================================================== */}
-        {showSidebar && (
+        {/* ERROR */}
+        {error && (
           <div
-            onClick={() => setShowSidebar(false)}
             className="
-              fixed inset-0
-              bg-black/40
-              z-20
-              md:hidden
+              bg-red-100
+              text-red-700
+              text-sm
+              p-3
+              rounded-lg
+              mb-4
             "
-          />
+          >
+            {error}
+          </div>
         )}
 
-        {/* ======================================================
-            CHAT AREA
-        ====================================================== */}
-        <div className="flex-1 flex flex-col bg-[#efeae2] relative">
+        {/* USERNAME */}
+        <div className="mb-4">
+          <label className="text-sm font-medium mb-1 block">
+            Username
+          </label>
 
-          {/* HEADER */}
-          <div className="bg-[#202c33] text-white p-3 shadow-md flex items-center gap-3">
-
-            {/* MOBILE MENU */}
-            <button
-              onClick={() => setShowSidebar(true)}
-              className="
-                md:hidden
-                text-2xl
-                leading-none
-              "
-            >
-              ☰
-            </button>
-
-            {/* AVATAR */}
-            <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
-              👤
-            </div>
-
-            {/* INFO */}
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold truncate">
-                {activeMessages?.[0]?.groupName ||
-                  activeMessages?.[0]?.senderName ||
-                  activeChat ||
-                  "Pilih Chat"}
-              </p>
-
-              <p className="text-xs text-gray-300">
-                Online
-              </p>
-            </div>
-          </div>
-
-          {/* ======================================================
-              CHAT BODY
-          ====================================================== */}
-          <div
+          <input
+            type="text"
+            value={username}
+            onChange={(e) =>
+              setUsername(e.target.value)
+            }
+            placeholder="Masukkan username"
             className="
-              flex-1
-              overflow-y-auto
-              p-3 md:p-5
-              space-y-3
-              bg-[#efeae2]
+              w-full
+              border
+              rounded-xl
+              px-4 py-3
+              outline-none
+              focus:ring-2
+              focus:ring-[#00a884]
             "
-            
-          >
-
-            {/* EMPTY STATE */}
-            {activeMessages.length === 0 && (
-              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
-                Pilih chat untuk mulai melihat pesan
-              </div>
-            )}
-
-            {/* MESSAGES */}
-            {activeMessages.map((msg: any) => (
-              <div
-                key={msg.id}
-                className={`flex ${
-                  msg.direction === "in"
-                    ? "justify-start"
-                    : "justify-end"
-                }`}
-              >
-                <div
-                  className={`
-                    max-w-[90%] md:max-w-[70%]
-                    px-3 py-2
-                    rounded-2xl
-                    shadow-sm
-                    text-sm
-                    break-words
-                    ${
-                      msg.direction === "in"
-                        ? "bg-white rounded-tl-md"
-                        : "bg-[#d9fdd3] rounded-tr-md"
-                    }
-                  `}
-                >
-
-                  {/* SENDER */}
-                  <p className="text-[11px] text-gray-500 mb-1">
-                    {msg.senderName || "User"}
-                  </p>
-
-                  {/* IMAGE */}
-                  {msg.type === "image" &&
-                    msg.mediaUrl && (
-                      <img
-                        src={msg.mediaUrl}
-                        alt="media"
-                        className="
-                          rounded-lg
-                          mb-2
-                          max-w-full
-                          h-auto
-                        "
-                      />
-                    )}
-
-                  {/* TEXT */}
-                  {msg.text && (
-                    <p className="whitespace-pre-wrap text-[14px]">
-                      {msg.text}
-                    </p>
-                  )}
-
-                  {/* TIME */}
-                  <div className="flex justify-end mt-1">
-                    <p className="text-[10px] text-gray-400">
-                      {msg.time || formatTime()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            <div ref={bottomRef} />
-          </div>
-
-          {/* ======================================================
-              INPUT AREA
-          ====================================================== */}
-          <div className="bg-[#202c33] p-3">
-            <div className="flex items-center gap-2">
-
-              {/* INPUT */}
-              <input
-                type="text"
-                placeholder="Ketik pesan..."
-                value={input}
-                onChange={(e) =>
-                  setInput(e.target.value)
-                }
-                onKeyDown={(e) =>
-                  e.key === "Enter" && sendMessage()
-                }
-                className="
-                  flex-1
-                  bg-white
-                  rounded-full
-                  px-4 py-3
-                  text-sm
-                  outline-none
-                "
-              />
-
-              {/* BUTTON */}
-              <button
-                onClick={sendMessage}
-                className="
-                  bg-[#00a884]
-                  hover:bg-[#06cf9c]
-                  text-white
-                  px-5 py-3
-                  rounded-full
-                  transition
-                  font-semibold
-                  shrink-0
-                "
-              >
-                Kirim
-              </button>
-            </div>
-          </div>
+          />
         </div>
+
+        {/* PASSWORD */}
+        <div className="mb-5">
+          <label className="text-sm font-medium mb-1 block">
+            Password
+          </label>
+
+          <input
+            type="password"
+            value={password}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
+            placeholder="Masukkan password"
+            className="
+              w-full
+              border
+              rounded-xl
+              px-4 py-3
+              outline-none
+              focus:ring-2
+              focus:ring-[#00a884]
+            "
+            onKeyDown={(e) =>
+              e.key === "Enter" && handleLogin()
+            }
+          />
+        </div>
+
+        {/* BUTTON */}
+        <button
+          onClick={handleLogin}
+          className="
+            w-full
+            bg-[#00a884]
+            hover:bg-[#06cf9c]
+            text-white
+            font-semibold
+            py-3
+            rounded-xl
+            transition
+          "
+        >
+          Login
+        </button>
+
+        {/* FOOTER */}
+        <p className="text-center text-xs text-gray-400 mt-5">
+          WhatsApp Relay System
+        </p>
       </div>
     </main>
   );
