@@ -1,24 +1,14 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
-import {
-  io,
-  Socket,
-} from "socket.io-client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 // ======================================================
 // SOCKET URL
 // ======================================================
 
 const SOCKET_URL =
-  process.env
-    .NEXT_PUBLIC_SOCKET_URL ||
+  process.env.NEXT_PUBLIC_SOCKET_URL ||
   "https://birthday-cruz-solving-howto.trycloudflare.com";
 
 // ======================================================
@@ -26,42 +16,12 @@ const SOCKET_URL =
 // ======================================================
 
 const formatTime = () =>
-  new Date().toLocaleTimeString(
-    "id-ID",
-    {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }
-  );
-
-// ======================================================
-// TYPES
-// ======================================================
-
-type MessageType =
-  | "text"
-  | "image"
-  | "video"
-  | "audio"
-  | "sticker"
-  | "document"
-  | "contact"
-  | "location"
-  | "reaction";
-
-interface Message {
-  id: string;
-  jid: string;
-  senderName?: string;
-  groupName?: string;
-  text?: string;
-  mediaUrl?: string | null;
-  type: MessageType;
-  direction: "in" | "out";
-  time?: string;
-}
+  new Date().toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
 
 export default function Home() {
 
@@ -70,7 +30,7 @@ export default function Home() {
   // ======================================================
 
   const [messages, setMessages] =
-    useState<Message[]>([]);
+    useState<any[]>([]);
 
   const [status, setStatus] =
     useState("DISCONNECTED");
@@ -94,29 +54,21 @@ export default function Home() {
   const socketRef =
     useRef<Socket | null>(null);
 
-  const bottomRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
+const bottomRef =
+  useRef<HTMLDivElement | null>(null);
+
+const chatBodyRef =
+  useRef<HTMLDivElement | null>(null);
+
+// ======================================================
+// ACTIVE CHAT REF
+// ======================================================
+
+const activeChatRef =
+  useRef<string | null>(null);
 
   const chatBodyRef =
-    useRef<HTMLDivElement | null>(
-      null
-    );
-
-  const activeChatRef =
-    useRef<string | null>(null);
-
-  // ======================================================
-  // ACTIVE CHAT REF
-  // ======================================================
-
-  useEffect(() => {
-
-    activeChatRef.current =
-      activeChat;
-
-  }, [activeChat]);
+    useRef<HTMLDivElement | null>(null);
 
   // ======================================================
   // SOCKET INIT
@@ -124,19 +76,12 @@ export default function Home() {
 
   useEffect(() => {
 
-    if (socketRef.current) {
-      return;
-    }
+    if (socketRef.current) return;
 
-    const socket = io(
-      SOCKET_URL,
-      {
-        transports: [
-          "websocket",
-        ],
-        reconnection: true,
-      }
-    );
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket"],
+      reconnection: true,
+    });
 
     socketRef.current = socket;
 
@@ -144,183 +89,190 @@ export default function Home() {
     // CONNECT
     // ======================================================
 
-    socket.on(
-      "connect",
-      () => {
+    socket.on("connect", () => {
+      setStatus("CONNECTED");
+    });
 
-        console.log(
-          "✅ SOCKET CONNECTED"
-        );
+    socket.on("disconnect", () => {
+      setStatus("DISCONNECTED");
+    });
 
-        setStatus(
-          "CONNECTED"
-        );
-      }
-    );
-
-    socket.on(
-      "disconnect",
-      () => {
-
-        console.log(
-          "❌ SOCKET DISCONNECTED"
-        );
-
-        setStatus(
-          "DISCONNECTED"
-        );
-      }
-    );
-
-    socket.on(
-      "status",
-      (data: string) => {
-
-        setStatus(data);
-      }
-    );
+    socket.on("status", (data) => {
+      setStatus(data);
+    });
 
     // ======================================================
     // HISTORY
     // ======================================================
 
-    socket.on(
-      "message_history",
-      (history: Message[]) => {
+    socket.on("history", (data) => {
 
-        console.log(
-          "📚 HISTORY:",
-          history.length
-        );
+      console.log(
+        "HISTORY LOADED:",
+        data.length
+      );
 
-        setMessages((prev) => {
-
-          const map =
-            new Map<
-              string,
-              Message
-            >();
-
-          [
-            ...prev,
-            ...history,
-          ].forEach(
-            (msg) => {
-
-              map.set(
-                msg.id,
-                msg
-              );
-            }
-          );
-
-          return Array.from(
-            map.values()
-          );
-        });
-      }
-    );
+      setMessages(data);
+    });
 
     // ======================================================
     // REALTIME MESSAGE
     // ======================================================
 
-    socket.on(
-      "message",
-      (data: Message) => {
+socket.on("message", (data) => {
 
-        const el =
-          chatBodyRef.current;
+  // ======================================================
+  // SAVE MESSAGE
+  // ======================================================
 
-        let isBottom = true;
+  setMessages((prev) => {
 
-        // ======================================================
-        // CHECK SCROLL POSITION
-        // ======================================================
-
-        if (el) {
-
-          isBottom =
-            el.scrollHeight -
-              el.scrollTop -
-              el.clientHeight <
-            120;
-        }
-
-        // ======================================================
-        // SAVE MESSAGE
-        // ======================================================
-
-        setMessages((prev) => {
-
-          const exists =
-            prev.some(
-              (m) =>
-                m.id ===
-                data.id
-            );
-
-          if (exists) {
-            return prev;
-          }
-
-          return [
-            ...prev,
-            data,
-          ];
-        });
-
-        // ======================================================
-        // AUTO SCROLL
-        // ======================================================
-
-        if (
-          data.jid ===
-            activeChatRef.current &&
-          isBottom
-        ) {
-
-          setTimeout(() => {
-
-            bottomRef.current?.scrollIntoView({
-              behavior:
-                "smooth",
-            });
-
-          }, 100);
-
-          setNewMessageAlert(
-            false
-          );
-        }
-
-        // ======================================================
-        // SHOW ALERT
-        // ======================================================
-
-        else if (
-          data.jid ===
-            activeChatRef.current &&
-          !isBottom
-        ) {
-
-          setNewMessageAlert(
-            true
-          );
-        }
-      }
+    const exists = prev.some(
+      (m) => m.id === data.id
     );
 
+    if (exists) return prev;
+
+    return [
+      ...prev,
+      {
+        ...data,
+        id:
+          data.id ||
+          crypto.randomUUID(),
+      },
+    ];
+  });
+
+  // ======================================================
+  // CHECK ACTIVE CHAT
+  // ======================================================
+
+  if (
+    data.jid !==
+    activeChatRef.current
+  ) {
+    return;
+  }
+
+  // ======================================================
+  // CHECK SCROLL POSITION
+  // ======================================================
+
+  setTimeout(() => {
+
+    const el =
+      chatBodyRef.current;
+
+    if (!el) return;
+
+    const isBottom =
+      el.scrollHeight -
+        el.scrollTop -
+        el.clientHeight <
+      120;
+
     // ======================================================
-    // CLEANUP
+    // USER AT BOTTOM
     // ======================================================
+
+    if (isBottom) {
+
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+
+      setNewMessageAlert(false);
+    }
+
+    // ======================================================
+    // USER READING OLD MESSAGE
+    // ======================================================
+
+    else {
+
+      setNewMessageAlert(true);
+    }
+
+  }, 50);
+});
+
+      // ======================================================
+      // CHECK USER POSITION
+      // ======================================================
+
+      if (el) {
+
+        isBottom =
+          el.scrollHeight -
+            el.scrollTop -
+            el.clientHeight <
+          120;
+      }
+
+      // ======================================================
+      // AUTO SCROLL IF USER AT BOTTOM
+      // ======================================================
+
+      if (
+        data.jid === activeChat &&
+        isBottom
+      ) {
+
+        setTimeout(() => {
+
+          bottomRef.current?.scrollIntoView({
+            behavior: "smooth",
+          });
+
+        }, 100);
+
+        setNewMessageAlert(false);
+      }
+
+      // ======================================================
+      // SHOW ALERT IF USER READING OLD MESSAGE
+      // ======================================================
+
+      else if (
+        data.jid === activeChat &&
+        !isBottom
+      ) {
+
+        setNewMessageAlert(true);
+      }
+
+      // ======================================================
+      // SAVE MESSAGE
+      // ======================================================
+
+      setMessages((prev) => {
+
+        const exists =
+          prev.some(
+            (m) =>
+              m.id === data.id
+          );
+
+        if (exists) return prev;
+
+        return [
+          ...prev,
+          {
+            ...data,
+            id:
+              data.id ||
+              crypto.randomUUID(),
+          },
+        ];
+      });
+    });
 
     return () => {
 
       socket.disconnect();
 
-      socketRef.current =
-        null;
+      socketRef.current = null;
     };
 
   }, []);
@@ -333,25 +285,13 @@ export default function Home() {
     useMemo(() => {
 
       return messages.reduce(
-        (
-          acc: Record<
-            string,
-            Message[]
-          >,
-          msg
-        ) => {
+        (acc: any, msg: any) => {
 
-          if (
-            !acc[msg.jid]
-          ) {
-
-            acc[msg.jid] =
-              [];
+          if (!acc[msg.jid]) {
+            acc[msg.jid] = [];
           }
 
-          acc[msg.jid].push(
-            msg
-          );
+          acc[msg.jid].push(msg);
 
           return acc;
 
@@ -362,7 +302,7 @@ export default function Home() {
     }, [messages]);
 
   // ======================================================
-  // ACTIVE MESSAGES
+  // ACTIVE CHAT
   // ======================================================
 
   const activeMessages =
@@ -380,9 +320,8 @@ export default function Home() {
 
     if (
       !activeChat &&
-      Object.keys(
-        groupedChats
-      ).length > 0
+      Object.keys(groupedChats)
+        .length > 0
     ) {
 
       setActiveChat(
@@ -391,44 +330,16 @@ export default function Home() {
         )[0]
       );
 
+      // mobile close sidebar
       if (
-        window.innerWidth <
-        768
+        window.innerWidth < 768
       ) {
 
-        setShowSidebar(
-          false
-        );
+        setShowSidebar(false);
       }
     }
 
-  }, [
-    groupedChats,
-    activeChat,
-  ]);
-
-  // ======================================================
-  // AUTO SCROLL TO BOTTOM
-  // ======================================================
-
-  useEffect(() => {
-
-    if (!activeChat) {
-      return;
-    }
-
-    setTimeout(() => {
-
-      bottomRef.current?.scrollIntoView({
-        behavior: "auto",
-      });
-
-    }, 50);
-
-  }, [
-    activeChat,
-    activeMessages.length,
-  ]);
+  }, [groupedChats]);
 
   // ======================================================
   // SEND MESSAGE
@@ -465,9 +376,7 @@ export default function Home() {
     const chat =
       groupedChats[jid];
 
-    if (!chat) {
-      return null;
-    }
+    if (!chat) return null;
 
     return chat[
       chat.length - 1
@@ -518,8 +427,7 @@ export default function Home() {
                     Object.keys(
                       groupedChats
                     ).length
-                  }{" "}
-                  chats
+                  } chats
                 </p>
 
               </div>
@@ -545,8 +453,7 @@ export default function Home() {
 
             {Object.keys(
               groupedChats
-            ).length ===
-              0 && (
+            ).length === 0 && (
 
               <div className="p-5 text-sm text-gray-500">
                 Belum ada pesan masuk
@@ -559,9 +466,7 @@ export default function Home() {
             ).map((jid) => {
 
               const lastMsg =
-                getLastMessage(
-                  jid
-                );
+                getLastMessage(jid);
 
               return (
 
@@ -569,9 +474,7 @@ export default function Home() {
                   key={jid}
                   onClick={() => {
 
-                    setActiveChat(
-                      jid
-                    );
+                    setActiveChat(jid);
 
                     setNewMessageAlert(
                       false
@@ -621,14 +524,11 @@ export default function Home() {
                           "image"
                             ? "📷 Image"
                             : lastMsg?.type ===
-                              "video"
-                            ? "🎥 Video"
-                            : lastMsg?.type ===
-                              "audio"
-                            ? "🎵 Audio"
-                            : lastMsg?.type ===
                               "sticker"
                             ? "😀 Sticker"
+                            : lastMsg?.type ===
+                              "video"
+                            ? "🎥 Video"
                             : "[MEDIA]")}
 
                       </p>
@@ -658,9 +558,7 @@ export default function Home() {
 
           <div
             onClick={() =>
-              setShowSidebar(
-                false
-              )
+              setShowSidebar(false)
             }
             className="
               fixed inset-0
@@ -682,11 +580,11 @@ export default function Home() {
 
           <div className="bg-[#202c33] text-white p-3 shadow-md flex items-center gap-3">
 
+            {/* MOBILE MENU */}
+
             <button
               onClick={() =>
-                setShowSidebar(
-                  true
-                )
+                setShowSidebar(true)
               }
               className="
                 md:hidden
@@ -697,9 +595,13 @@ export default function Home() {
               ☰
             </button>
 
+            {/* AVATAR */}
+
             <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
               👤
             </div>
+
+            {/* INFO */}
 
             <div className="min-w-0 flex-1">
 
@@ -728,20 +630,23 @@ export default function Home() {
 
           <div
             ref={chatBodyRef}
+
             onScroll={() => {
 
               const el =
                 chatBodyRef.current;
 
-              if (!el) {
-                return;
-              }
+              if (!el) return;
 
               const isBottom =
                 el.scrollHeight -
                   el.scrollTop -
                   el.clientHeight <
                 120;
+
+              // ======================================================
+              // HIDE NOTIFICATION
+              // ======================================================
 
               if (isBottom) {
 
@@ -750,6 +655,7 @@ export default function Home() {
                 );
               }
             }}
+
             className="
               flex-1
               overflow-y-auto
@@ -758,6 +664,8 @@ export default function Home() {
               bg-[#efeae2]
             "
           >
+
+            {/* EMPTY */}
 
             {activeMessages.length ===
               0 && (
@@ -768,8 +676,10 @@ export default function Home() {
 
             )}
 
+            {/* MESSAGES */}
+
             {activeMessages.map(
-              (msg) => (
+              (msg: any) => (
 
                 <div
                   key={msg.id}
@@ -879,10 +789,7 @@ export default function Home() {
 
                       <audio
                         controls
-                        className="
-                          w-full
-                          max-w-[280px]
-                        "
+                        className="w-full"
                       >
                         <source
                           src={
@@ -900,9 +807,7 @@ export default function Home() {
                         "[STICKER]" && (
 
                       <p className="whitespace-pre-wrap text-[14px]">
-
                         {msg.text}
-
                       </p>
 
                     )}
@@ -939,12 +844,9 @@ export default function Home() {
             <button
               onClick={() => {
 
-                bottomRef.current?.scrollIntoView(
-                  {
-                    behavior:
-                      "smooth",
-                  }
-                );
+                bottomRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                });
 
                 setNewMessageAlert(
                   false
@@ -978,6 +880,8 @@ export default function Home() {
 
             <div className="flex items-center gap-2">
 
+              {/* INPUT */}
+
               <input
                 type="text"
                 placeholder="Ketik pesan..."
@@ -987,16 +891,10 @@ export default function Home() {
                     e.target.value
                   )
                 }
-                onKeyDown={(e) => {
-
-                  if (
-                    e.key ===
-                    "Enter"
-                  ) {
-
-                    sendMessage();
-                  }
-                }}
+                onKeyDown={(e) =>
+                  e.key === "Enter" &&
+                  sendMessage()
+                }
                 className="
                   flex-1
                   bg-white
@@ -1007,10 +905,10 @@ export default function Home() {
                 "
               />
 
+              {/* BUTTON */}
+
               <button
-                onClick={
-                  sendMessage
-                }
+                onClick={sendMessage}
                 className="
                   bg-[#00a884]
                   hover:bg-[#06cf9c]
@@ -1030,9 +928,7 @@ export default function Home() {
           </div>
 
         </div>
-
       </div>
-
     </main>
   );
 }
