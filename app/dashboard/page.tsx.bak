@@ -87,6 +87,9 @@ export default function Home() {
   const [newMessageAlert, setNewMessageAlert] =
     useState(false);
 
+  const [newSenderName, setNewSenderName] =
+    useState("");
+
   // ======================================================
   // REFS
   // ======================================================
@@ -248,47 +251,6 @@ export default function Home() {
         }
 
         // ======================================================
-        // AUTO SCROLL
-        // ======================================================
-
-        if (
-          data.jid ===
-            activeChatRef.current &&
-          isBottom
-        ) {
-
-          setTimeout(() => {
-
-            bottomRef.current?.scrollIntoView(
-              {
-                behavior:
-                  "smooth",
-              }
-            );
-
-          }, 100);
-
-          setNewMessageAlert(
-            false
-          );
-        }
-
-        // ======================================================
-        // SHOW ALERT
-        // ======================================================
-
-        else if (
-          data.jid ===
-            activeChatRef.current &&
-          !isBottom
-        ) {
-
-          setNewMessageAlert(
-            true
-          );
-        }
-
-        // ======================================================
         // SAVE MESSAGE
         // ======================================================
 
@@ -307,14 +269,61 @@ export default function Home() {
 
           return [
             ...prev,
-            {
-              ...data,
-              id:
-                data.id ||
-                crypto.randomUUID(),
-            },
+            data,
           ];
         });
+
+        // ======================================================
+        // CHECK ACTIVE CHAT
+        // ======================================================
+
+        const isCurrentChat =
+          data.jid ===
+          activeChatRef.current;
+
+        // ======================================================
+        // AUTO SCROLL
+        // ======================================================
+
+        if (
+          isCurrentChat &&
+          isBottom
+        ) {
+
+          setTimeout(() => {
+
+            bottomRef.current?.scrollIntoView({
+              behavior:
+                "smooth",
+            });
+
+          }, 100);
+
+          setNewMessageAlert(
+            false
+          );
+
+          setNewSenderName(
+            ""
+          );
+        }
+
+        // ======================================================
+        // SHOW NOTIFICATION
+        // ======================================================
+
+        else {
+
+          setNewMessageAlert(
+            true
+          );
+
+          setNewSenderName(
+            data.groupName ||
+            data.senderName ||
+            "Unknown"
+          );
+        }
       }
     );
 
@@ -374,21 +383,9 @@ export default function Home() {
 
   const activeMessages =
     activeChat
-      ? [
-          ...(
-            groupedChats[
-              activeChat
-            ] || []
-          ),
-        ].sort((a, b) =>
-          String(
-            a.id
-          ).localeCompare(
-            String(
-              b.id
-            )
-          )
-        )
+      ? groupedChats[
+          activeChat
+        ] || []
       : [];
 
   // ======================================================
@@ -427,7 +424,7 @@ export default function Home() {
   ]);
 
   // ======================================================
-  // AUTO SCROLL
+  // AUTO SCROLL TO BOTTOM
   // ======================================================
 
   useEffect(() => {
@@ -438,18 +435,16 @@ export default function Home() {
 
     setTimeout(() => {
 
-      bottomRef.current?.scrollIntoView(
-        {
-          behavior:
-            "auto",
-        }
-      );
+      bottomRef.current?.scrollIntoView({
+        behavior:
+          "auto",
+      });
 
-    }, 100);
+    }, 50);
 
   }, [
-    messages.length,
     activeChat,
+    activeMessages.length,
   ]);
 
   // ======================================================
@@ -497,7 +492,7 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-[#111b21]">
+    <main className="h-screen overflow-hidden bg-[#111b21] text-black">
 
       <div className="flex h-full relative">
 
@@ -599,6 +594,10 @@ export default function Home() {
                       false
                     );
 
+                    setNewSenderName(
+                      ""
+                    );
+
                     if (
                       window.innerWidth <
                       768
@@ -625,7 +624,7 @@ export default function Home() {
 
                     <div className="min-w-0 flex-1">
 
-                      <p className="font-semibold text-sm truncate">
+                      <p className="font-semibold text-sm truncate text-black">
 
                         {
                           lastMsg?.groupName ||
@@ -765,10 +764,17 @@ export default function Home() {
                   el.clientHeight <
                 120;
 
-              if (isBottom) {
+              if (
+                isBottom &&
+                activeChat
+              ) {
 
                 setNewMessageAlert(
                   false
+                );
+
+                setNewSenderName(
+                  ""
                 );
               }
             }}
@@ -811,6 +817,7 @@ export default function Home() {
                       shadow-sm
                       text-sm
                       break-words
+                      text-black
                       ${
                         msg.direction ===
                         "in"
@@ -921,7 +928,7 @@ export default function Home() {
                       msg.text !==
                         "[STICKER]" && (
 
-                      <p className="whitespace-pre-wrap text-[14px]">
+                      <p className="whitespace-pre-wrap text-[14px] text-black">
 
                         {msg.text}
 
@@ -956,21 +963,72 @@ export default function Home() {
               NEW MESSAGE ALERT
           ====================================================== */}
 
-          {newMessageAlert && (
+      {newMessageAlert && (
 
-            <button
-              onClick={() => {
+  <button
+    onClick={() => {
 
-                bottomRef.current?.scrollIntoView(
-                  {
-                    behavior:
-                      "smooth",
-                  }
-                );
+      // ======================================================
+      // CARI CHAT BERDASARKAN NAMA SENDER
+      // ======================================================
 
-                setNewMessageAlert(
-                  false
-                );
+      const targetChat =
+        Object.keys(
+          groupedChats
+        ).find((jid) => {
+
+          const lastMsg =
+            groupedChats[
+              jid
+            ]?.[
+              groupedChats[
+                jid
+              ].length - 1
+            ];
+
+          return (
+            (
+              lastMsg?.groupName ||
+              lastMsg?.senderName
+            ) ===
+            newSenderName
+          );
+        });
+
+      // ======================================================
+      // PINDAH CHAT
+      // ======================================================
+
+      if (targetChat) {
+
+        setActiveChat(
+          targetChat
+        );
+
+        setTimeout(() => {
+
+          bottomRef.current?.scrollIntoView(
+            {
+              behavior:
+                "smooth",
+            }
+          );
+
+        }, 200);
+      }
+
+      // ======================================================
+      // RESET ALERT
+      // ======================================================
+
+      setNewMessageAlert(
+        false
+      );
+
+      setNewSenderName(
+        ""
+      );
+    }}
               }}
               className="
                 absolute
@@ -987,7 +1045,7 @@ export default function Home() {
                 z-20
               "
             >
-              Pesan Baru ↓
+              {`Pesan baru dari ${newSenderName} ↓`}
             </button>
 
           )}
@@ -1022,6 +1080,7 @@ export default function Home() {
                 className="
                   flex-1
                   bg-white
+                  text-black
                   rounded-full
                   px-4 py-3
                   text-sm
@@ -1058,4 +1117,3 @@ export default function Home() {
     </main>
   );
 }
-

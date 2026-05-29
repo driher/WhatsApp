@@ -87,6 +87,9 @@ export default function Home() {
   const [newMessageAlert, setNewMessageAlert] =
     useState(false);
 
+  const [newSenderName, setNewSenderName] =
+    useState("");
+
   // ======================================================
   // REFS
   // ======================================================
@@ -271,12 +274,19 @@ export default function Home() {
         });
 
         // ======================================================
+        // CHECK ACTIVE CHAT
+        // ======================================================
+
+        const isCurrentChat =
+          data.jid ===
+          activeChatRef.current;
+
+        // ======================================================
         // AUTO SCROLL
         // ======================================================
 
         if (
-          data.jid ===
-            activeChatRef.current &&
+          isCurrentChat &&
           isBottom
         ) {
 
@@ -292,20 +302,26 @@ export default function Home() {
           setNewMessageAlert(
             false
           );
+
+          setNewSenderName(
+            ""
+          );
         }
 
         // ======================================================
-        // SHOW ALERT
+        // SHOW NOTIFICATION
         // ======================================================
 
-        else if (
-          data.jid ===
-            activeChatRef.current &&
-          !isBottom
-        ) {
+        else {
 
           setNewMessageAlert(
             true
+          );
+
+          setNewSenderName(
+            data.groupName ||
+            data.senderName ||
+            "Unknown"
           );
         }
       }
@@ -420,7 +436,8 @@ export default function Home() {
     setTimeout(() => {
 
       bottomRef.current?.scrollIntoView({
-        behavior: "auto",
+        behavior:
+          "auto",
       });
 
     }, 50);
@@ -475,7 +492,7 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-[#111b21]">
+    <main className="h-screen overflow-hidden bg-[#111b21] text-black">
 
       <div className="flex h-full relative">
 
@@ -577,6 +594,10 @@ export default function Home() {
                       false
                     );
 
+                    setNewSenderName(
+                      ""
+                    );
+
                     if (
                       window.innerWidth <
                       768
@@ -603,7 +624,7 @@ export default function Home() {
 
                     <div className="min-w-0 flex-1">
 
-                      <p className="font-semibold text-sm truncate">
+                      <p className="font-semibold text-sm truncate text-black">
 
                         {
                           lastMsg?.groupName ||
@@ -743,10 +764,17 @@ export default function Home() {
                   el.clientHeight <
                 120;
 
-              if (isBottom) {
+              if (
+                isBottom &&
+                activeChat
+              ) {
 
                 setNewMessageAlert(
                   false
+                );
+
+                setNewSenderName(
+                  ""
                 );
               }
             }}
@@ -789,6 +817,7 @@ export default function Home() {
                       shadow-sm
                       text-sm
                       break-words
+                      text-black
                       ${
                         msg.direction ===
                         "in"
@@ -899,7 +928,7 @@ export default function Home() {
                       msg.text !==
                         "[STICKER]" && (
 
-                      <p className="whitespace-pre-wrap text-[14px]">
+                      <p className="whitespace-pre-wrap text-[14px] text-black">
 
                         {msg.text}
 
@@ -930,45 +959,106 @@ export default function Home() {
 
           </div>
 
-          {/* ======================================================
-              NEW MESSAGE ALERT
-          ====================================================== */}
+         {/* ======================================================
+    NEW MESSAGE ALERT
+====================================================== */}
 
-          {newMessageAlert && (
+{newMessageAlert && (
 
-            <button
-              onClick={() => {
+  <button
+    onClick={() => {
 
-                bottomRef.current?.scrollIntoView(
-                  {
-                    behavior:
-                      "smooth",
-                  }
-                );
+      // ======================================================
+      // CARI CHAT BERDASARKAN NAMA SENDER
+      // ======================================================
 
-                setNewMessageAlert(
-                  false
-                );
-              }}
-              className="
-                absolute
-                bottom-24
-                right-5
-                bg-[#00a884]
-                text-white
-                px-4
-                py-2
-                rounded-full
-                shadow-lg
-                text-sm
-                animate-bounce
-                z-20
-              "
-            >
-              Pesan Baru ↓
-            </button>
+      const targetChat =
+        Object.keys(
+          groupedChats
+        ).find((jid) => {
 
-          )}
+          const lastMsg =
+            groupedChats[
+              jid
+            ]?.[
+              groupedChats[
+                jid
+              ].length - 1
+            ];
+
+          return (
+            (
+              lastMsg?.groupName ||
+              lastMsg?.senderName
+            ) ===
+            newSenderName
+          );
+        });
+
+      // ======================================================
+      // PINDAH CHAT
+      // ======================================================
+
+      if (targetChat) {
+
+        setActiveChat(
+          targetChat
+        );
+
+        // mobile auto close sidebar
+        if (
+          window.innerWidth < 768
+        ) {
+
+          setShowSidebar(
+            false
+          );
+        }
+
+        // scroll bawah
+        setTimeout(() => {
+
+          bottomRef.current?.scrollIntoView(
+            {
+              behavior:
+                "smooth",
+            }
+          );
+
+        }, 200);
+      }
+
+      // ======================================================
+      // RESET ALERT
+      // ======================================================
+
+      setNewMessageAlert(
+        false
+      );
+
+      setNewSenderName(
+        ""
+      );
+    }}
+    className="
+      absolute
+      bottom-24
+      right-5
+      bg-[#00a884]
+      text-white
+      px-4
+      py-2
+      rounded-full
+      shadow-lg
+      text-sm
+      animate-bounce
+      z-20
+    "
+  >
+    {`Pesan baru dari ${newSenderName} ↓`}
+  </button>
+
+)}
 
           {/* ======================================================
               INPUT
@@ -1000,6 +1090,7 @@ export default function Home() {
                 className="
                   flex-1
                   bg-white
+                  text-black
                   rounded-full
                   px-4 py-3
                   text-sm
