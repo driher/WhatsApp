@@ -959,11 +959,11 @@ export default function Home() {
 
           </div>
 
-          {/* ======================================================
-              NEW MESSAGE ALERT
-          ====================================================== */}
+         {/* ======================================================
+    NEW MESSAGE ALERT
+====================================================== */}
 
-      {newMessageAlert && (
+{newMessageAlert && (
 
   <button
     onClick={() => {
@@ -1005,6 +1005,17 @@ export default function Home() {
           targetChat
         );
 
+        // mobile auto close sidebar
+        if (
+          window.innerWidth < 768
+        ) {
+
+          setShowSidebar(
+            false
+          );
+        }
+
+        // scroll bawah
         setTimeout(() => {
 
           bottomRef.current?.scrollIntoView(
@@ -1029,26 +1040,25 @@ export default function Home() {
         ""
       );
     }}
-              }}
-              className="
-                absolute
-                bottom-24
-                right-5
-                bg-[#00a884]
-                text-white
-                px-4
-                py-2
-                rounded-full
-                shadow-lg
-                text-sm
-                animate-bounce
-                z-20
-              "
-            >
-              {`Pesan baru dari ${newSenderName} ↓`}
-            </button>
+    className="
+      absolute
+      bottom-24
+      right-5
+      bg-[#00a884]
+      text-white
+      px-4
+      py-2
+      rounded-full
+      shadow-lg
+      text-sm
+      animate-bounce
+      z-20
+    "
+  >
+    {`Pesan baru dari ${newSenderName} ↓`}
+  </button>
 
-          )}
+)}
 
           {/* ======================================================
               INPUT

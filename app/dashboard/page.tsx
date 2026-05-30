@@ -19,7 +19,7 @@ import {
 const SOCKET_URL =
   process.env
     .NEXT_PUBLIC_SOCKET_URL ||
-  "https://birthday-cruz-solving-howto.trycloudflare.com";
+  " https://have-cookbook-pending-alexandria.trycloudflare.com";
 
 // ======================================================
 // FORMAT TIME
