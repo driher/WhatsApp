@@ -36,6 +36,47 @@ const formatTime = () =>
     }
   );
 
+//==========================
+//LINK HIDUP
+//==========================
+
+function renderTextWithLinks(
+  text: string
+) {
+  const urlRegex =
+    /(https?:\/\/[^\s]+)/g;
+
+  return text
+    .split(urlRegex)
+    .map((part, index) => {
+
+      if (
+        /^https?:\/\/[^\s]+$/.test(
+          part
+        )
+      ) {
+
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              text-blue-600
+              underline
+              break-all
+            "
+          >
+            {part}
+          </a>
+        );
+      }
+
+      return part;
+    });
+}
+
 // ======================================================
 // TYPES
 // ======================================================
@@ -58,11 +99,18 @@ interface Message {
   groupName?: string;
   text?: string;
   mediaUrl?: string | null;
+
+  linkPreview?: {
+    url?: string;
+    title?: string;
+    description?: string;
+    image?: string;
+  };
+
   type: MessageType;
   direction: "in" | "out";
   time?: string;
 }
-
 export default function Home() {
 
   // ======================================================
@@ -962,15 +1010,84 @@ max-w-[280px]
 
                     {/* TEXT */}
 
+		    <pre className="text-[10px]">
+  {JSON.stringify(
+    msg.linkPreview,
+    null,
+    2
+  )}
+</pre>
+
+{msg.linkPreview && (
+
+  <a
+    href={
+      msg.linkPreview.url
+    }
+    target="_blank"
+    rel="noopener noreferrer"
+    className="
+      block
+      mb-2
+      bg-white
+      rounded-xl
+      overflow-hidden
+      border
+      border-gray-200
+      hover:bg-gray-50
+    "
+  >
+
+    {msg.linkPreview.image && (
+
+      <img
+        src={
+          msg.linkPreview.image
+        }
+        alt=""
+        className="
+          w-full
+          max-h-48
+          object-cover
+        "
+      />
+
+    )}
+
+    <div className="p-3">
+
+      <div className="font-semibold text-sm">
+
+        {
+          msg.linkPreview.title
+        }
+
+      </div>
+
+      <div className="text-xs text-gray-500 mt-1">
+
+        {
+          msg.linkPreview
+            .description
+        }
+
+      </div>
+
+    </div>
+
+  </a>
+
+)}
+
                     {msg.text &&
                       msg.text !==
                         "[STICKER]" && (
 
                       <p className="whitespace-pre-wrap text-[14px] text-black">
-
-                        {msg.text}
-
-                      </p>
+			{renderTextWithLinks(
+			msg.text
+			)}
+			</p>
 
                     )}
 
@@ -1044,14 +1161,7 @@ max-w-[280px]
         );
 
         // mobile auto close sidebar
-        if (
-          window.innerWidth < 768
-        ) {
-
-          setShowSidebar(
-            false
-          );
-        }
+        
 
         // scroll bawah
         setTimeout(() => {
