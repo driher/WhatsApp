@@ -146,7 +146,7 @@ const handleLongPressStart = (id: string) => {
   longPressTimer.current = setTimeout(() => {
     setSelectionMode(true);
     setSelectedMessages([id]);
-  }, 500);
+  }, 1500);
 };
 
 const handleLongPressEnd = () => {
@@ -689,16 +689,8 @@ if (textareaRef.current) {
               </div>
 
             )}
-
-            {Object.keys(
-              groupedChats
-            ).map((jid) => {
-
-              const lastMsg =
-                getLastMessage(
-                  jid
-                );
-
+{Object.keys(groupedChats).map((jid) => {
+  const lastMsg = getLastMessage(jid);
               return (
 
                 <div
@@ -864,12 +856,12 @@ if (textareaRef.current) {
 
             </div>
 
-	    <button
+{/*	    <button
   onClick={() => setSelectionMode(true)}
   className="text-xs bg-white text-black px-2 py-1 rounded"
 >
   Pilih Pesan
-</button>
+</button>*/}
 
           </div>
 
