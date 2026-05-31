@@ -8,6 +8,10 @@ import { useState } from "react";
 // password: sejiwa
 // ============================================
 
+export const viewport = {
+  themeColor: "#202c33",
+};
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

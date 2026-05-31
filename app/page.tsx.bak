@@ -14,17 +14,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const handleLogin = () => {
-  setError("");
-
-  if (
-    username === "sehati" &&
-    password === "sejiwa"
-  ) {
-    window.location.href = "/dashboard";
-  } else {
-    setError("Username atau password salah");
-  }
-};
+    if (
+      username === "sehati" &&
+      password === "sejiwa"
+    ) {
+      // redirect ke page.txt
+      window.location.href = "/dashboard";
+    } else {
+      setError("Username atau password salah");
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#111b21] flex items-center justify-center p-5">
