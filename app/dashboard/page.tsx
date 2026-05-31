@@ -646,7 +646,7 @@ if (textareaRef.current) {
               <div>
 
                 <h1 className="font-bold text-lg">
-                  WhatsApp Relay
+                  WA Hotline Relay
                 </h1>
 
                 <p className="text-xs text-gray-300 mt-1">
@@ -979,7 +979,10 @@ if (textareaRef.current) {
         </div>
       )}
 
-   
+   {/* 👇 setelah ini baru konten chat */}
+  <p className="text-[11px] text-gray-500 mb-1">
+    {msg.senderName || "User"}
+  </p>
                     {/* IMAGE */}
 
                     {msg.type ===

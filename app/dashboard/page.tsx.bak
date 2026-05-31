@@ -646,7 +646,7 @@ if (textareaRef.current) {
               <div>
 
                 <h1 className="font-bold text-lg">
-                  WhatsApp Relay
+                  WA Hotline Relay
                 </h1>
 
                 <p className="text-xs text-gray-300 mt-1">
@@ -1293,7 +1293,7 @@ max-w-[280px]
       z-20
     "
   >
-    {`Pesan baru dari ${newSenderName} â†“`}
+    {`Pesan baru dari ${newSenderName} ↓`}
   </button>
 
 )}
