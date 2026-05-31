@@ -972,7 +972,7 @@ if (textareaRef.current) {
       )}
 
    {/* 👇 setelah ini baru konten chat */}
-  <p className="text-[11px] text-gray-500 mb-1">
+  <p className="text-[14px] font-bold text-gray-700 mb-1">
     {msg.senderName || "User"}
   </p>
                     {/* IMAGE */}
