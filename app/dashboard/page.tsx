@@ -1115,14 +1115,21 @@ max-w-[280px]
     setInput(e.target.value)
   }
   onKeyDown={(e) => {
-    if (
-      e.key === "Enter" &&
-      !e.shiftKey
-    ) {
-      e.preventDefault();
-      sendMessage();
-    }
-  }}
+
+  // MOBILE
+  if (window.innerWidth < 768) {
+    return;
+  }
+
+  // DESKTOP
+  if (
+    e.key === "Enter" &&
+    !e.shiftKey
+  ) {
+    e.preventDefault();
+    sendMessage();
+  }
+}}
 
 className="
 flex-1

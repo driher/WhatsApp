@@ -1115,15 +1115,9 @@ max-w-[280px]
     setInput(e.target.value)
   }
   onKeyDown={(e) => {
-    if (
-      e.key === "Enter" &&
-      !e.shiftKey
-    ) {
-      e.preventDefault();
-      sendMessage();
-    }
+    
   }}
-  className="
+
 className="
 flex-1
 min-w-0
