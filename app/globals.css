@@ -70,3 +70,20 @@ button {
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.2);
 }
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+video,
+iframe {
+  max-width: 100%;
+}
