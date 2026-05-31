@@ -19,7 +19,7 @@ import {
 const SOCKET_URL =
   process.env
     .NEXT_PUBLIC_SOCKET_URL ||
-  "https://have-cookbook-pending-alexandria.trycloudflare.com";
+  "https://motor-beverage-aware-noticed.trycloudflare.com";
 
 // ======================================================
 // FORMAT TIME
@@ -109,6 +109,11 @@ export default function Home() {
 
   const activeChatRef =
     useRef<string | null>(null);
+  
+  const textareaRef =
+  useRef<HTMLTextAreaElement | null>(
+    null
+  );
 
   // ======================================================
   // ACTIVE CHAT REF
@@ -447,6 +452,31 @@ export default function Home() {
     activeMessages.length,
   ]);
 
+useEffect(() => {
+  const textarea =
+    textareaRef.current;
+
+  if (!textarea) return;
+
+  textarea.style.height =
+    "auto";
+
+  const maxHeight = 96;
+
+  textarea.style.height =
+    Math.min(
+      textarea.scrollHeight,
+      maxHeight
+    ) + "px";
+
+  textarea.style.overflowY =
+    textarea.scrollHeight >
+    maxHeight
+      ? "auto"
+      : "hidden";
+}, [input]);
+
+
   // ======================================================
   // SEND MESSAGE
   // ======================================================
@@ -469,6 +499,11 @@ export default function Home() {
     );
 
     setInput("");
+
+if (textareaRef.current) {
+  textareaRef.current.style.height =
+    "48px";
+}
   };
 
   // ======================================================
@@ -492,7 +527,7 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-[#111b21] text-black">
+    <main className="h-[100dvh] overflow-hidden bg-[#111b21] text-black">
 
       <div className="flex h-full relative">
 
@@ -507,7 +542,7 @@ export default function Home() {
             fixed md:relative
             z-30
             h-full
-            w-[85%] sm:w-[380px] md:w-[350px]
+            w-[92%] max-w-[350px] md:w-[350px]
             transition-transform duration-300
             ${
               showSidebar
@@ -646,7 +681,7 @@ export default function Home() {
                             ? "🎥 Video"
                             : lastMsg?.type ===
                               "audio"
-                            ? "🎵 Audio"
+                            ? "🎵 Audio""
                             : lastMsg?.type ===
                               "sticker"
                             ? "😀 Sticker"
@@ -715,7 +750,7 @@ export default function Home() {
                 leading-none
               "
             >
-              ☰
+              â˜°
             </button>
 
             <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
@@ -811,7 +846,7 @@ export default function Home() {
 
                   <div
                     className={`
-                      max-w-[90%] md:max-w-[70%]
+                      max-w-[85%] sm:max-w-[80%] md:max-w-[70%]
                       px-3 py-2
                       rounded-2xl
                       shadow-sm
@@ -1042,7 +1077,7 @@ export default function Home() {
     }}
     className="
       absolute
-      bottom-24
+      bottom-[110px] md:bottom-24
       right-5
       bg-[#00a884]
       text-white
@@ -1068,35 +1103,40 @@ export default function Home() {
 
             <div className="flex items-center gap-2">
 
-              <input
-                type="text"
-                placeholder="Ketik pesan..."
-                value={input}
-                onChange={(e) =>
-                  setInput(
-                    e.target.value
-                  )
-                }
-                onKeyDown={(e) => {
-
-                  if (
-                    e.key ===
-                    "Enter"
-                  ) {
-
-                    sendMessage();
-                  }
-                }}
-                className="
-                  flex-1
-                  bg-white
-                  text-black
-                  rounded-full
-                  px-4 py-3
-                  text-sm
-                  outline-none
-                "
-              />
+              <textarea
+  ref={textareaRef}
+  placeholder="Ketik pesan..."
+  value={input}
+  rows={1}
+  onChange={(e) =>
+    setInput(e.target.value)
+  }
+  onKeyDown={(e) => {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }}
+  className="
+    flex-1
+    resize-none
+    bg-white
+    text-black
+    rounded-3xl
+    px-4
+    py-3
+    text-sm
+    outline-none
+    leading-6
+    min-h-[48px]
+    max-h-[96px]
+    overflow-y-auto
+  "
+/>
+ 
 
               <button
                 onClick={
@@ -1106,7 +1146,7 @@ export default function Home() {
                   bg-[#00a884]
                   hover:bg-[#06cf9c]
                   text-white
-                  px-5 py-3
+                  px-4 py-3 md:px-5
                   rounded-full
                   transition
                   font-semibold
