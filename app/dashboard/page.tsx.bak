@@ -205,7 +205,7 @@ export default function Home() {
       () => {
 
         console.log(
-          "âœ… SOCKET CONNECTED"
+          "✅ SOCKET CONNECTED"
         );
 
         setStatus(
@@ -219,7 +219,7 @@ export default function Home() {
       () => {
 
         console.log(
-          "âŒ SOCKET DISCONNECTED"
+          "❌ SOCKET DISCONNECTED"
         );
 
         setStatus(
@@ -245,7 +245,7 @@ export default function Home() {
       (history: Message[]) => {
 
         console.log(
-          "ðŸ“š HISTORY:",
+          "📚 HISTORY:",
           history.length
         );
 
@@ -575,7 +575,7 @@ if (textareaRef.current) {
   };
 
   return (
-    <main className="h-[100dvh] w-[100dvw] overflow-hidden bg-[#111b21] text-black">
+    <main className="h-[100svh] flex flex-col bg-[#111b21] text-black overflow-hidden">
 
       <div className="flex h-full w-full relative overflow-hidden">
 
@@ -723,16 +723,16 @@ if (textareaRef.current) {
 
                           (lastMsg?.type ===
                           "image"
-                            ? "ðŸ“· Image"
+                            ? "📷 Image"
                             : lastMsg?.type ===
                               "video"
-                            ? "ðŸŽ¥ Video"
+                            ? "🎥 Video"
                             : lastMsg?.type ===
                               "audio"
-                            ? "ðŸŽµ Audio"
+                            ? "🎵 Audio"
                             : lastMsg?.type ===
                               "sticker"
-                            ? "ðŸ˜€ Sticker"
+                            ? "😀 Sticker"
                             : "[MEDIA]")}
 
                       </p>
@@ -798,11 +798,11 @@ if (textareaRef.current) {
                 leading-none
               "
             >
-             â˜°
+             ☰
             </button>
 
             <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
-              ðŸ‘¤
+              👤
             </div>
 
             <div className="min-w-0 flex-1">
@@ -1210,7 +1210,7 @@ max-w-[280px]
       z-20
     "
   >
-    {`Pesan baru dari ${newSenderName} â†“`}
+    {`Pesan baru dari ${newSenderName} ↓`}
   </button>
 
 )}

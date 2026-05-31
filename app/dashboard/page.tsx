@@ -575,9 +575,9 @@ if (textareaRef.current) {
   };
 
   return (
-    <main className="h-[100dvh] w-[100dvw] overflow-hidden bg-[#111b21] text-black">
+    <main className="h-[100svh] flex flex-col bg-[#111b21] text-black overflow-hidden">
 
-      <div className="flex h-full w-full relative overflow-hidden">
+      <div className="flex flex-1 min-h-0 w-full relative">
 
         {/* ======================================================
             SIDEBAR
@@ -641,7 +641,7 @@ if (textareaRef.current) {
 
           {/* CHAT LIST */}
 
-          <div className="flex-1 overflow-y-auto bg-white">
+          <div className="flex-1 min-h-0 overflow-y-auto">
 
             {Object.keys(
               groupedChats
@@ -780,7 +780,7 @@ if (textareaRef.current) {
             CHAT AREA
         ====================================================== */}
 
-        <div className="flex-1 min-w-0 flex flex-col bg-[#efeae2] relative">
+        <div className="flex-1 min-h-0 flex flex-col bg-[#efeae2] relative overflow-hidden">
 
           {/* HEADER */}
 
