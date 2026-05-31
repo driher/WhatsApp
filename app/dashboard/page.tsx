@@ -138,6 +138,42 @@ export default function Home() {
   const [newSenderName, setNewSenderName] =
     useState("");
 
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+const handleLongPressStart = (id: string) => {
+  longPressTimer.current = setTimeout(() => {
+    setSelectionMode(true);
+    setSelectedMessages([id]);
+  }, 500);
+};
+
+const handleLongPressEnd = () => {
+  if (longPressTimer.current) {
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+  }
+};
+
+const toggleSelectMessage = (id: string) => {
+  setSelectedMessages((prev) => {
+    if (prev.includes(id)) {
+      return prev.filter((x) => x !== id);
+    }
+    return [...prev, id];
+  });
+};
+
+const deleteSelectedMessages = () => {
+  setMessages((prev) =>
+    prev.filter((msg) => !selectedMessages.includes(msg.id))
+  );
+
+  setSelectedMessages([]);
+  setSelectionMode(false);
+};
+
   // ======================================================
   // REFS
   // ======================================================
@@ -219,7 +255,7 @@ export default function Home() {
       () => {
 
         console.log(
-          "❌ SOCKET DISCONNECTED"
+          "❌SOCKET DISCONNECTED"
         );
 
         setStatus(
@@ -792,6 +828,8 @@ if (textareaRef.current) {
                   true
                 )
               }
+
+
               className="
                 md:hidden
                 text-2xl
@@ -804,6 +842,8 @@ if (textareaRef.current) {
             <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
               👤
             </div>
+
+
 
             <div className="min-w-0 flex-1">
 
@@ -823,6 +863,13 @@ if (textareaRef.current) {
               </p>
 
             </div>
+
+	    <button
+  onClick={() => setSelectionMode(true)}
+  className="text-xs bg-white text-black px-2 py-1 rounded"
+>
+  Pilih Pesan
+</button>
 
           </div>
 
@@ -879,46 +926,60 @@ if (textareaRef.current) {
 
             )}
 
-            {activeMessages.map(
-              (msg) => (
 
-                <div
-                  key={msg.id}
-                  className={`flex ${
-                    msg.direction ===
-                    "in"
-                      ? "justify-start"
-                      : "justify-end"
-                  }`}
-                >
 
-                  <div
-                    className={`
-                      max-w-[80vw] md:max-w-[70%]
-                      px-3 py-2
-                      rounded-2xl
-                      shadow-sm
-                      text-sm
-                      break-words
-                      text-black
-                      ${
-                        msg.direction ===
-                        "in"
-                          ? "bg-white rounded-tl-md"
-                          : "bg-[#d9fdd3] rounded-tr-md"
-                      }
-                    `}
-                  >
+{activeMessages.map((msg) => (
+  <div
+    key={msg.id}
+    className={`flex ${
+      msg.direction === "in" ? "justify-start" : "justify-end"
+    }`}
+  >
+    <div
+      onMouseDown={() => handleLongPressStart(msg.id)}
+      onMouseUp={handleLongPressEnd}
+      onMouseLeave={handleLongPressEnd}
+      onTouchStart={() => handleLongPressStart(msg.id)}
+      onTouchEnd={handleLongPressEnd}
+      onClick={() => {
+        if (selectionMode) toggleSelectMessage(msg.id);
+      }}
+      className={`
+        relative
+        max-w-[75%]
+        px-3 py-2
+        rounded-2xl
+        text-sm
+        break-words
+        cursor-pointer
+        select-none
+        transition
 
-                    {/* NAME */}
+        ${
+          msg.direction === "in"
+            ? "bg-white text-black rounded-tl-md"
+            : "bg-[#d9fdd3] text-black rounded-tr-md"
+        }
 
-                    <p className="text-[11px] text-gray-500 mb-1">
+        ${
+          selectedMessages.includes(msg.id)
+            ? "ring-2 ring-green-500"
+            : ""
+        }
+      `}
+    >
+      {/* CHECKBOX kecil (opsional visual) */}
+      {selectionMode && (
+        <div className="absolute top-1 left-1">
+          <input
+            type="checkbox"
+            checked={selectedMessages.includes(msg.id)}
+            readOnly
+          />
+        </div>
+      )}
 
-                      {msg.senderName ||
-                        "User"}
-
-                    </p>
-
+   
                     {/* IMAGE */}
 
                     {msg.type ===
@@ -1007,6 +1068,28 @@ max-w-[280px]
                       </audio>
 
                     )}
+
+
+		    {selectionMode && (
+  <div className="flex gap-2 p-2 bg-gray-100">
+    <button
+      onClick={deleteSelectedMessages}
+      className="bg-red-500 text-white px-3 py-1 rounded"
+    >
+      Hapus ({selectedMessages.length})
+    </button>
+
+    <button
+      onClick={() => {
+        setSelectionMode(false);
+        setSelectedMessages([]);
+      }}
+      className="bg-gray-300 px-3 py-1 rounded"
+    >
+      Batal
+    </button>
+  </div>
+)}
 
                     {/* TEXT */}
 
