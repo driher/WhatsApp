@@ -31,15 +31,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-export const metadata = {
-  title: "WhatsApp Hotline Radio Sehati",
-  description: "WhatsApp Relay Dashboard",
-
-  manifest: "/manifest.json",
-
-  icons: {
-    icon: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
-  },
-};

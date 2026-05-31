@@ -575,15 +575,7 @@ if (textareaRef.current) {
   };
 
   return (
-    <main
-  className="
-    fixed
-    inset-0
-    overflow-hidden
-    bg-[#111b21]
-    text-black
-  "
->
+    <main className="h-[100dvh] w-[100dvw] overflow-hidden bg-[#111b21] text-black">
 
       <div className="flex h-full w-full relative overflow-hidden">
 

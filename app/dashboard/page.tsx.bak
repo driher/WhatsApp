@@ -205,7 +205,7 @@ export default function Home() {
       () => {
 
         console.log(
-          "✅ SOCKET CONNECTED"
+          "âœ… SOCKET CONNECTED"
         );
 
         setStatus(
@@ -219,7 +219,7 @@ export default function Home() {
       () => {
 
         console.log(
-          "❌ SOCKET DISCONNECTED"
+          "âŒ SOCKET DISCONNECTED"
         );
 
         setStatus(
@@ -245,7 +245,7 @@ export default function Home() {
       (history: Message[]) => {
 
         console.log(
-          "📚 HISTORY:",
+          "ðŸ“š HISTORY:",
           history.length
         );
 
@@ -723,16 +723,16 @@ if (textareaRef.current) {
 
                           (lastMsg?.type ===
                           "image"
-                            ? "📷 Image"
+                            ? "ðŸ“· Image"
                             : lastMsg?.type ===
                               "video"
-                            ? "🎥 Video"
+                            ? "ðŸŽ¥ Video"
                             : lastMsg?.type ===
                               "audio"
-                            ? "🎵 Audio"
+                            ? "ðŸŽµ Audio"
                             : lastMsg?.type ===
                               "sticker"
-                            ? "😀 Sticker"
+                            ? "ðŸ˜€ Sticker"
                             : "[MEDIA]")}
 
                       </p>
@@ -798,11 +798,11 @@ if (textareaRef.current) {
                 leading-none
               "
             >
-             ☰
+             â˜°
             </button>
 
             <div className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center shrink-0">
-              👤
+              ðŸ‘¤
             </div>
 
             <div className="min-w-0 flex-1">
@@ -1210,7 +1210,7 @@ max-w-[280px]
       z-20
     "
   >
-    {`Pesan baru dari ${newSenderName} ↓`}
+    {`Pesan baru dari ${newSenderName} â†“`}
   </button>
 
 )}
