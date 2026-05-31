@@ -575,7 +575,15 @@ if (textareaRef.current) {
   };
 
   return (
-    <main className="h-[100dvh] w-[100dvw] overflow-hidden bg-[#111b21] text-black">
+    <main
+  className="
+    fixed
+    inset-0
+    overflow-hidden
+    bg-[#111b21]
+    text-black
+  "
+>
 
       <div className="flex h-full w-full relative overflow-hidden">
 
@@ -1161,7 +1169,14 @@ max-w-[280px]
         );
 
         // mobile auto close sidebar
-        
+        if (
+          window.innerWidth < 768
+        ) {
+
+          setShowSidebar(
+            false
+          );
+        }
 
         // scroll bawah
         setTimeout(() => {
