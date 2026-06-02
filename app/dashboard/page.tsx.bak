@@ -1457,7 +1457,7 @@ socket.on(
 
           {/* TEXT */}
           {msg.text &&
-            msg.type !== "deleted" &&
+            (msg.type as any) !== "deleted" &&
             msg.text !== "[STICKER]" && (
               <p className="whitespace-pre-wrap text-[14px]">
                 {renderTextWithLinks(msg.text)}
@@ -1472,6 +1472,7 @@ socket.on(
           </div>
         </>
       )}
+
     </div>
   </div>
 ))}

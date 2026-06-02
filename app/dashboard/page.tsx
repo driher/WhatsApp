@@ -18,11 +18,11 @@ import {
 
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL ||
-  "https://motor-beverage-aware-noticed.trycloudflare.com";
+  "https://feeding-dishes-insight-mobility.trycloudflare.com";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL ||
-  "https://motor-beverage-aware-noticed.trycloudflare.com";
+  "https://feeding-dishes-insight-mobility.trycloudflare.com";
 
 /* =====================================================
    HELPERS
@@ -1472,6 +1472,7 @@ socket.on(
           </div>
         </>
       )}
+
     </div>
   </div>
 ))}
