@@ -18,11 +18,11 @@ import {
 
 const SOCKET_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL ||
-  "https://feeding-dishes-insight-mobility.trycloudflare.com";
+  "https://wa.apadansiapa.com/";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_SOCKET_URL ||
-  "https://feeding-dishes-insight-mobility.trycloudflare.com";
+  "https://wa.apadansiapa.com/";
 
 /* =====================================================
    HELPERS
